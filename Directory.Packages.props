@@ -6,7 +6,7 @@
   <ItemGroup>
     <!-- Static code analysis -->
     <PackageVersion Include="MediatR" Version="14.1.0" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.24.0.138807" />
     <!-- Application -->
     <PackageVersion Include="Scrutor" Version="7.0.0" />
