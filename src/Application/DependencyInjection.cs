@@ -12,7 +12,8 @@ public static class DependencyInjection
     {
         services.AddMediatR(cfg =>
         {
-            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
+            cfg.RegisterServicesFromAssembly(
+                typeof(DependencyInjection).Assembly);
         });
 
         services.Scan(scan => scan.FromAssembliesOf(typeof(DependencyInjection))

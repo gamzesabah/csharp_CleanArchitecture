@@ -1,6 +1,6 @@
-﻿using Application.Abstractions.Messaging;
-using Application.Orders.Commands;
+﻿using Application.Orders.Commands;
 using Application.Orders.Dtos;
+using MediatR;
 using SharedKernel;
 
 namespace Web.Api.Endpoints.Orders;
@@ -11,11 +11,13 @@ internal sealed class Create : IEndpoint
     {
         app.MapPost("orders", async (
             CreateOrderCommand command,
-            ICommandHandler<CreateOrderCommand, OrderDto> handler,
+            IMediator mediator,
             CancellationToken cancellationToken) =>
         {
             Result<OrderDto> result =
-                await handler.Handle(command, cancellationToken);
+                await mediator.Send(
+                    command,
+                    cancellationToken);
 
             if (result.IsFailure)
             {

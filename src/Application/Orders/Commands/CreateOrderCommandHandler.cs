@@ -11,7 +11,7 @@ namespace Application.Orders.Commands;
 internal sealed class CreateOrderCommandHandler(
     IOrderRepository orderRepository,
     IMediator mediator)
-    : ICommandHandler<CreateOrderCommand, OrderDto>
+    : IRequestHandler<CreateOrderCommand, Result<OrderDto>>
 {
     public async Task<Result<OrderDto>> Handle(
         CreateOrderCommand command,
