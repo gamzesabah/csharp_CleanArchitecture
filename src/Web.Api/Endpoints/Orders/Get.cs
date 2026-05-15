@@ -1,6 +1,7 @@
-﻿using Application.Abstractions.Messaging;
-using Application.Orders.Dtos;
+﻿using Application.Orders.Dtos;
 using Application.Orders.Queries;
+using MediatR;
+using SharedKernel;
 
 namespace Web.Api.Endpoints.Orders;
 
@@ -9,12 +10,22 @@ internal sealed class Get : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("orders", async (
-            IQueryHandler<GetOrderListQuery, List<OrderDto>> handler,
+            IMediator mediator,
             CancellationToken cancellationToken) =>
         {
             GetOrderListQuery query = new();
 
-            return Results.Ok(await handler.Handle(query, cancellationToken));
+            Result<List<OrderDto>> result =
+                await mediator.Send(
+                    query,
+                    cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return Results.BadRequest(result.Error);
+            }
+
+            return Results.Ok(result.Value);
         })
         .WithTags("Orders");
     }

@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.Abstractions.Messaging;
 using Application.Orders.Dtos;
+using MediatR;
 using SharedKernel;
 
 namespace Application.Orders.Queries;
 
 internal sealed class GetOrderListQueryHandler
-    : IQueryHandler<GetOrderListQuery, List<OrderDto>>
+    : IRequestHandler<GetOrderListQuery, Result<List<OrderDto>>>
 {
     public async Task<Result<List<OrderDto>>> Handle(
         GetOrderListQuery request,
@@ -30,6 +30,8 @@ internal sealed class GetOrderListQueryHandler
                 TotalAmount = 200
             }
         };
-        return await Task.FromResult(Result.Success(orders));
+
+        return await Task.FromResult(
+            Result.Success(orders));
     }
 }
