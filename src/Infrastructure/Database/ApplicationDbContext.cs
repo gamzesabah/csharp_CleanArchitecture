@@ -1,8 +1,10 @@
 ﻿using Application.Abstractions.Data;
 using Domain.Orders;
+using Domain.Products;
 using Domain.Todos;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Database;
 
@@ -13,6 +15,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     {
     }
     public DbSet<Order> Orders => Set<Order>();
+    public DbSet<Product> Products => Set<Product>();
     public DbSet<User> Users => Set<User>();
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
@@ -22,5 +25,13 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
             typeof(ApplicationDbContext).Assembly);
 
         base.OnModelCreating(modelBuilder);
+    }
+    
+    public async Task<IDbContextTransaction>
+        BeginTransactionAsync(
+            CancellationToken cancellationToken = default)
+    {
+        return await Database
+            .BeginTransactionAsync(cancellationToken);
     }
 }

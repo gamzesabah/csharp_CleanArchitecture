@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260515084620_AddProductTable")]
+    partial class AddProductTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,18 +79,6 @@ namespace Infrastructure.Database.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_products");
-
-                    b.HasIndex("Category")
-                        .HasDatabaseName("ix_products_category");
-
-                    b.HasIndex("Name")
-                        .HasDatabaseName("ix_products_name");
-
-                    b.HasIndex("Price")
-                        .HasDatabaseName("ix_products_price");
-
-                    b.HasIndex("Category", "Price")
-                        .HasDatabaseName("ix_products_category_price");
 
                     b.ToTable("products", (string)null);
                 });

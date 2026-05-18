@@ -1,49 +1,101 @@
 ﻿using Application.Abstractions.Data;
-using Application.Abstractions.Messaging;
+using Application.Abstractions.Events;
 using Application.Orders.Dtos;
 using Domain.Orders;
 using Domain.Orders.ValueObjects;
+using Domain.Products;
 using MediatR;
+using Microsoft.EntityFrameworkCore.Storage;
 using SharedKernel;
 
 namespace Application.Orders.Commands;
 
 internal sealed class CreateOrderCommandHandler(
     IOrderRepository orderRepository,
-    IMediator mediator)
+    IProductRepository productRepository,
+    IApplicationDbContext context,
+    IDomainEventsDispatcher domainEventsDispatcher)
     : IRequestHandler<CreateOrderCommand, Result<OrderDto>>
 {
     public async Task<Result<OrderDto>> Handle(
         CreateOrderCommand command,
         CancellationToken cancellationToken)
     {
-        var order = Order.Create(
-            new OrderName(command.Name),
-            command.TotalAmount);
-        if(command.Name is null)
+        await using IDbContextTransaction transaction =
+            await context.BeginTransactionAsync(
+                cancellationToken);
+
+        try
         {
-            return Result.Failure<OrderDto>(Error.NullValue);  
+            bool exists =
+                await orderRepository.ExistsByNameAsync(
+                    command.Name,
+                    cancellationToken);
+
+            if (exists)
+            {
+                return Result.Failure<OrderDto>(
+                    Error.Conflict(
+                        "Order.AlreadyExists",
+                        "Order with same name already exists"));
+            }
+
+            Product? product =
+                await productRepository.GetByIdAsync(
+                    command.ProductId,
+                    cancellationToken);
+
+            if (product is null)
+            {
+                return Result.Failure<OrderDto>(
+                    Error.NotFound(
+                        "Product.NotFound",
+                        "Product not found"));
+            }
+
+            Result stockResult =
+                product.ReduceStock(1);
+
+            if (stockResult.IsFailure)
+            {
+                return Result.Failure<OrderDto>(
+                    stockResult.Error);
+            }
+
+            var order = Order.Create(
+                new OrderName(command.Name),
+                command.TotalAmount);
+
+            await orderRepository.AddAsync(order);
+
+            await productRepository.UpdateAsync(
+                product,
+                cancellationToken);
+
+            await context.SaveChangesAsync(
+                cancellationToken);
+
+            await transaction.CommitAsync(
+                cancellationToken);
+
+            await domainEventsDispatcher.DispatchAsync(
+                order.DomainEvents,
+                cancellationToken);
+
+            return Result.Success(
+                new OrderDto
+                {
+                    Id = order.Id,
+                    Name = order.Name.Value,
+                    TotalAmount = order.TotalAmount
+                });
         }
-        //early return : Araştır
-
-        await orderRepository.AddAsync(order);
-
-        foreach (IDomainEvent domainEvent in order.DomainEvents)
+        catch
         {
-            await mediator.Publish(domainEvent, cancellationToken);
+            await transaction.RollbackAsync(
+                cancellationToken);
+
+            throw;
         }
-
-        var response = new OrderDto
-        {
-            Id = order.Id,
-            Name = $"{order.Name.Value} {order.Name.Value}",
-            TotalAmount = order.TotalAmount
-        };
-
-        return Result.Success(response); 
-        /*sadece neden success döndürüyoruz? 
-         * çünkü hata durumunu da Result ile döndürebiliriz. 
-         * eğer hata durumunu da döndürmek istiyorsak Result.Failure() kullanabiliriz.
-         * */
     }
 }

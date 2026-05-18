@@ -1,10 +1,11 @@
 ﻿using MediatR;
-using Application.Orders.Dtos;
 using SharedKernel;
+using Application.Orders.Dtos;
 
 namespace Application.Orders.Commands;
 
 public sealed record CreateOrderCommand(
     string Name,
-    decimal TotalAmount)
+    decimal TotalAmount,
+    Guid ProductId)
     : IRequest<Result<OrderDto>>;
