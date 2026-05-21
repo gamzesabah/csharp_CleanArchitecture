@@ -11,11 +11,11 @@ internal sealed class Create : IEndpoint
     {
         app.MapPost("orders", async (
             CreateOrderCommand command,
-            IMediator mediator,
+            ISender sender,
             CancellationToken cancellationToken) =>
         {
             Result<OrderDto> result =
-                await mediator.Send(
+                await sender.Send(
                     command,
                     cancellationToken);
 

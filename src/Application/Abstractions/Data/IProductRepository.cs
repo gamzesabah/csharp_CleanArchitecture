@@ -10,6 +10,10 @@ public interface IProductRepository
         Guid id,
         CancellationToken cancellationToken = default);
 
+    Task<Product?> GetByIdAsNoTrackingAsync(
+        Guid id,
+        CancellationToken cancellationToken = default);
+
     Task UpdateAsync(
         Product product,
         CancellationToken cancellationToken = default);

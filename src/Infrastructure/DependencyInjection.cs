@@ -19,6 +19,8 @@ using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Extensions.Http;
 using SharedKernel;
+using Domain.Idempotency;
+using Infrastructure.Idempotency;
 
 namespace Infrastructure;
 
@@ -39,7 +41,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
-
+        services.AddScoped<IIdempotencyRepository,IdempotencyRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
 

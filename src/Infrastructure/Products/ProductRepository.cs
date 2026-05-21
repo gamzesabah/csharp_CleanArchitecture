@@ -15,15 +15,13 @@ public sealed class ProductRepository
     {
         _context = context;
     }
-
     public async Task AddAsync(Product product)
     {
         await _context.Products.AddAsync(product);
     }
-
     public async Task<Product?> GetByIdAsync(
-    Guid id,
-    CancellationToken cancellationToken = default)
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
         return await _context.Products
             .FirstOrDefaultAsync(
@@ -31,13 +29,22 @@ public sealed class ProductRepository
                 cancellationToken);
     }
 
+    public async Task<Product?> GetByIdAsNoTrackingAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Products
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                x => x.Id == id,
+                cancellationToken);
+    }
     public async Task UpdateAsync(
         Product product,
         CancellationToken cancellationToken = default)
     {
         _context.Products.Update(product);
     }
-
     public async Task<bool> ExistsByNameAsync(
         string name,
         CancellationToken cancellationToken = default)

@@ -47,6 +47,7 @@ internal sealed class CreateOrderCommandHandler(
 
             if (product is null)
             {
+                await transaction.RollbackAsync(cancellationToken);
                 return Result.Failure<OrderDto>(
                     Error.NotFound(
                         "Product.NotFound",
@@ -58,6 +59,7 @@ internal sealed class CreateOrderCommandHandler(
 
             if (stockResult.IsFailure)
             {
+                await transaction.RollbackAsync(cancellationToken);
                 return Result.Failure<OrderDto>(
                     stockResult.Error);
             }

@@ -32,7 +32,7 @@ public static class MigrationExtensions
         using ApplicationDbContext dbContext =
             scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        await dbContext.Database.MigrateAsync();
+         await dbContext.Database.MigrateAsync();
         await dbContext.SeedDataAsync();
     }
 }

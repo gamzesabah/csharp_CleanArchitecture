@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Data;
+using Domain.Idempotency;
 using Domain.Orders;
 using Domain.Products;
 using Domain.Todos;
@@ -16,6 +17,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     }
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Product> Products => Set<Product>();
+
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
     public DbSet<User> Users => Set<User>();
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 

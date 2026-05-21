@@ -61,7 +61,6 @@ internal sealed class CreateProductCommandHandler
         await _context.SaveChangesAsync(
             cancellationToken);
 
-        // Cache invalidation
         await _cache.RemoveAsync(
             "products:1:10:::",
             cancellationToken);
