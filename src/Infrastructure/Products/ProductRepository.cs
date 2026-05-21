@@ -39,11 +39,13 @@ public sealed class ProductRepository
                 x => x.Id == id,
                 cancellationToken);
     }
-    public async Task UpdateAsync(
-        Product product,
-        CancellationToken cancellationToken = default)
+    public Task UpdateAsync(
+    Product product,
+    CancellationToken cancellationToken = default)
     {
         _context.Products.Update(product);
+
+        return Task.CompletedTask;
     }
     public async Task<bool> ExistsByNameAsync(
         string name,
