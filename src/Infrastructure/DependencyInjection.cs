@@ -32,7 +32,6 @@ public static class DependencyInjection
         services
             .AddServices(configuration)
             .AddDatabase(configuration)
-            .AddHealthChecks(configuration)
             .AddAuthenticationInternal(configuration)
             .AddAuthorizationInternal();
 
@@ -95,17 +94,6 @@ public static class DependencyInjection
 
         services.AddScoped<IApplicationDbContext>(
             sp => sp.GetRequiredService<ApplicationDbContext>());
-
-        return services;
-    }
-    private static IServiceCollection AddHealthChecks(
-        this IServiceCollection services,
-        IConfiguration configuration)
-    {
-        services
-            .AddHealthChecks()
-            .AddNpgSql(
-                configuration.GetConnectionString("Database")!);
 
         return services;
     }
