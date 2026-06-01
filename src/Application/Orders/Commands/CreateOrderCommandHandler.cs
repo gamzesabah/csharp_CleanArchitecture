@@ -13,8 +13,7 @@ namespace Application.Orders.Commands;
 internal sealed class CreateOrderCommandHandler(
     IOrderRepository orderRepository,
     IProductRepository productRepository,
-    IApplicationDbContext context,
-    IDomainEventsDispatcher domainEventsDispatcher)
+    IApplicationDbContext context)
     : IRequestHandler<CreateOrderCommand, Result<OrderDto>>
 {
     public async Task<Result<OrderDto>> Handle(
@@ -78,10 +77,6 @@ internal sealed class CreateOrderCommandHandler(
                 cancellationToken);
 
             await transaction.CommitAsync(
-                cancellationToken);
-
-            await domainEventsDispatcher.DispatchAsync(
-                order.DomainEvents,
                 cancellationToken);
 
             return Result.Success(
