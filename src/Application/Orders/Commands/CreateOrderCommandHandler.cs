@@ -7,6 +7,8 @@ using Domain.Products;
 using MediatR;
 using Microsoft.EntityFrameworkCore.Storage;
 using SharedKernel;
+using System.Text.Json;
+using Domain.Outbox;
 
 namespace Application.Orders.Commands;
 
@@ -67,11 +69,31 @@ internal sealed class CreateOrderCommandHandler(
                 new OrderName(command.Name),
                 command.TotalAmount);
 
+            var outboxMessage =
+                new OutboxMessage(
+                    Guid.NewGuid(),
+                    "OrderCreatedEvent",
+                    JsonSerializer.Serialize(
+                        new
+                        {
+                            OrderId = order.Id,
+                            OrderName = order.Name.Value,
+                            Amount = order.TotalAmount
+                        }),
+                    DateTime.UtcNow);
+
             await orderRepository.AddAsync(order);
+
+            await context.OutboxMessages.AddAsync(
+                outboxMessage,
+                cancellationToken);
 
             await productRepository.UpdateAsync(
                 product,
                 cancellationToken);
+
+            Console.WriteLine(
+                $"Outbox Count Local: {context.OutboxMessages.Local.Count}");
 
             await context.SaveChangesAsync(
                 cancellationToken);

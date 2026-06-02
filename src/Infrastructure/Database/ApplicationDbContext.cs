@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions.Data;
 using Domain.Idempotency;
 using Domain.Orders;
+using Domain.Outbox;
 using Domain.Products;
 using Domain.Todos;
 using Domain.Users;
@@ -17,7 +18,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     }
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Product> Products => Set<Product>();
-
+    public DbSet<OutboxMessage> OutboxMessages=> Set<OutboxMessage>();
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
     public DbSet<User> Users => Set<User>();
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();

@@ -1,4 +1,5 @@
 ﻿using Domain.Orders;
+using Domain.Outbox;
 using Domain.Products;
 using Domain.Todos;
 using Domain.Users;
@@ -13,7 +14,7 @@ public interface IApplicationDbContext
     DbSet<Order> Orders { get; }
     DbSet<Product> Products { get; }
     DbSet<TodoItem> TodoItems { get; }
-
+    DbSet<OutboxMessage> OutboxMessages { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(
     CancellationToken cancellationToken = default);

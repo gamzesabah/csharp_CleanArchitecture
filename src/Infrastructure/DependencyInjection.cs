@@ -2,11 +2,14 @@
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Events;
+using Domain.Idempotency;
 using Infrastructure.Authentication;
 using Infrastructure.Authorization;
 using Infrastructure.Database;
 using Infrastructure.Events;
+using Infrastructure.Idempotency;
 using Infrastructure.Orders;
+using Infrastructure.Outbox;
 using Infrastructure.Products;
 using Infrastructure.Time;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,8 +22,6 @@ using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Polly.Extensions.Http;
 using SharedKernel;
-using Domain.Idempotency;
-using Infrastructure.Idempotency;
 
 namespace Infrastructure;
 
@@ -153,6 +154,7 @@ public static class DependencyInjection
             IAuthorizationPolicyProvider,
             PermissionAuthorizationPolicyProvider>();
 
+        services.AddHostedService<OutboxProcessor>();
         return services;
     }
 }
