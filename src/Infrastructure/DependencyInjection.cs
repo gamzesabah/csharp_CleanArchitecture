@@ -47,7 +47,7 @@ public static class DependencyInjection
 
         services.AddSingleton(Channel.CreateUnbounded<OutboxMessage>());
 
-        services.AddSingleton<IEventBus, InMemoryEventBus>();
+        services.AddSingleton<IEventBus, RabbitMqEventBus>();
         services.AddScoped<IIdempotencyRepository,IdempotencyRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
@@ -163,6 +163,7 @@ public static class DependencyInjection
 
         services.AddHostedService<OutboxProcessor>();
         services.AddHostedService<EventConsumer>();
+        services.AddHostedService<RabbitMqConsumer>();
         return services;
     }
 }
