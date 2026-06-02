@@ -1,13 +1,16 @@
 ﻿using System.Text;
+using System.Threading.Channels;
 using Application.Abstractions.Authentication;
 using Application.Abstractions.Data;
 using Application.Abstractions.Events;
 using Domain.Idempotency;
+using Domain.Outbox;
 using Infrastructure.Authentication;
 using Infrastructure.Authorization;
 using Infrastructure.Database;
 using Infrastructure.Events;
 using Infrastructure.Idempotency;
+using Infrastructure.Messaging;
 using Infrastructure.Orders;
 using Infrastructure.Outbox;
 using Infrastructure.Products;
@@ -41,6 +44,10 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+
+        services.AddSingleton(Channel.CreateUnbounded<OutboxMessage>());
+
+        services.AddSingleton<IEventBus, InMemoryEventBus>();
         services.AddScoped<IIdempotencyRepository,IdempotencyRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
@@ -155,6 +162,7 @@ public static class DependencyInjection
             PermissionAuthorizationPolicyProvider>();
 
         services.AddHostedService<OutboxProcessor>();
+        services.AddHostedService<EventConsumer>();
         return services;
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Domain.Outbox;
 using Infrastructure.Database;
+using Infrastructure.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -7,7 +8,8 @@ using Microsoft.Extensions.Hosting;
 namespace Infrastructure.Outbox;
 
 public sealed class OutboxProcessor(
-    IServiceScopeFactory serviceScopeFactory)
+    IServiceScopeFactory serviceScopeFactory,
+    IEventBus eventBus)
     : BackgroundService
 {
     protected override async Task ExecuteAsync(
@@ -36,14 +38,15 @@ public sealed class OutboxProcessor(
                 Console.WriteLine(
                     $"İşleniyor: {message.Type}");
 
+                await eventBus.PublishAsync(
+                    message,
+                    stoppingToken);
+
                 message.MarkAsProcessed();
             }
 
             await context.SaveChangesAsync(
                 stoppingToken);
-
-            Console.WriteLine(
-                $"Bulunan mesaj sayısı: {messages.Count}");
 
             await Task.Delay(
                 TimeSpan.FromSeconds(10),
