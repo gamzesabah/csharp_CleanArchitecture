@@ -117,22 +117,20 @@ public static class DependencyInjection
                 o.RequireHttpsMetadata = false;
 
                 o.TokenValidationParameters =
-                    new TokenValidationParameters
-                    {
-                        IssuerSigningKey =
-                            new SymmetricSecurityKey(
-                                Encoding.UTF8.GetBytes(
-                                    configuration["Jwt:Secret"]!)),
-
-                        ValidIssuer =
-                            configuration["Jwt:Issuer"],
-
-                        ValidAudience =
-                            configuration["Jwt:Audience"],
-
-                        ClockSkew =
-                            TimeSpan.Zero
-                    };
+                new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidAudience = configuration["Jwt:Audience"],
+                    IssuerSigningKey =
+                        new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(
+                                configuration["Jwt:Secret"]!)),
+                    ClockSkew = TimeSpan.Zero
+                };
             });
 
         services.AddHttpContextAccessor();
