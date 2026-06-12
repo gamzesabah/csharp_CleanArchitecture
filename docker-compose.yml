@@ -24,6 +24,13 @@ services:
     ports:
       - 8081:80
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+
   web-api:
     image: ${DOCKER_REGISTRY-}webapi
     container_name: web-api
@@ -39,4 +46,6 @@ services:
       postgres:
         condition: service_healthy
       seq:
+        condition: service_started
+      rabbitmq:
         condition: service_started

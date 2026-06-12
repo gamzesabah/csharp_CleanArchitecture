@@ -7,7 +7,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Polly" />
     <PackageReference Include="Serilog" />
     <PackageReference Include="Scrutor" />
   </ItemGroup>
@@ -22,7 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Abstractions\Events\" />
     <Folder Include="Orders\Validators\" />
   </ItemGroup>
 

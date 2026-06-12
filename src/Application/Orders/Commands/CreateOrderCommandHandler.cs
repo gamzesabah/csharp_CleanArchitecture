@@ -1,49 +1,120 @@
 ﻿using Application.Abstractions.Data;
-using Application.Abstractions.Messaging;
+using Application.Abstractions.Events;
 using Application.Orders.Dtos;
 using Domain.Orders;
 using Domain.Orders.ValueObjects;
+using Domain.Products;
 using MediatR;
+using Microsoft.EntityFrameworkCore.Storage;
 using SharedKernel;
+using System.Text.Json;
+using Domain.Outbox;
 
 namespace Application.Orders.Commands;
 
 internal sealed class CreateOrderCommandHandler(
     IOrderRepository orderRepository,
-    IMediator mediator)
-    : ICommandHandler<CreateOrderCommand, OrderDto>
+    IProductRepository productRepository,
+    IApplicationDbContext context)
+    : IRequestHandler<CreateOrderCommand, Result<OrderDto>>
 {
     public async Task<Result<OrderDto>> Handle(
         CreateOrderCommand command,
         CancellationToken cancellationToken)
     {
-        var order = Order.Create(
-            new OrderName(command.Name),
-            command.TotalAmount);
-        if(command.Name is null)
+        await using IDbContextTransaction transaction =
+            await context.BeginTransactionAsync(
+                cancellationToken);
+
+        try
         {
-            return Result.Failure<OrderDto>(Error.NullValue);  
+            bool exists =
+                await orderRepository.ExistsByNameAsync(
+                    command.Name,
+                    cancellationToken);
+
+            if (exists)
+            {
+                return Result.Failure<OrderDto>(
+                    Error.Conflict(
+                        "Order.AlreadyExists",
+                        "Order with same name already exists"));
+            }
+
+            Product? product =
+                await productRepository.GetByIdAsync(
+                    command.ProductId,
+                    cancellationToken);
+
+            if (product is null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return Result.Failure<OrderDto>(
+                    Error.NotFound(
+                        "Product.NotFound",
+                        "Product not found"));
+            }
+
+            Result stockResult =
+                product.ReduceStock(1);
+
+            if (stockResult.IsFailure)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return Result.Failure<OrderDto>(
+                    stockResult.Error);
+            }
+
+            var order = Order.Create(
+                new OrderName(command.Name),
+                command.TotalAmount);
+
+            var outboxMessage =
+                new OutboxMessage(
+                    Guid.NewGuid(),
+                    "OrderCreatedEvent",
+                    JsonSerializer.Serialize(
+                        new
+                        {
+                            OrderId = order.Id,
+                            OrderName = order.Name.Value,
+                            Amount = order.TotalAmount
+                        }),
+                    DateTime.UtcNow);
+
+            await orderRepository.AddAsync(order);
+
+            await context.OutboxMessages.AddAsync(
+                outboxMessage,
+                cancellationToken);
+
+            await productRepository.UpdateAsync(
+                product,
+                cancellationToken);
+
+            Console.WriteLine(
+                $"Outbox Count Local: {context.OutboxMessages.Local.Count}");
+
+            await context.SaveChangesAsync(
+                cancellationToken);
+
+            await transaction.CommitAsync(
+                cancellationToken);
+
+            return Result.Success(
+                new OrderDto
+                {
+                    Id = order.Id,
+                    Name = order.Name.Value,
+                    TotalAmount = order.TotalAmount
+                });
         }
-        //early return : Araştır
-
-        await orderRepository.AddAsync(order);
-
-        foreach (IDomainEvent domainEvent in order.DomainEvents)
+        catch
         {
-            await mediator.Publish(domainEvent, cancellationToken);
+            await transaction.RollbackAsync(
+                cancellationToken);
+
+            throw;
         }
-
-        var response = new OrderDto
-        {
-            Id = order.Id,
-            Name = $"{order.Name.Value} {order.Name.Value}",
-            TotalAmount = order.TotalAmount
-        };
-
-        return Result.Success(response); 
-        /*sadece neden success döndürüyoruz? 
-         * çünkü hata durumunu da Result ile döndürebiliriz. 
-         * eğer hata durumunu da döndürmek istiyorsak Result.Failure() kullanabiliriz.
-         * */
     }
 }
