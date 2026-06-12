@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Application.Abstractions.Messaging;
+﻿using MediatR;
+using SharedKernel;
 using Application.Orders.Dtos;
 
 namespace Application.Orders.Commands;
 
-public sealed record CreateOrderCommand(string Name, decimal TotalAmount): ICommand<OrderDto>;
+public sealed record CreateOrderCommand(
+    string Name,
+    decimal TotalAmount,
+    Guid ProductId)
+    : IRequest<Result<OrderDto>>;

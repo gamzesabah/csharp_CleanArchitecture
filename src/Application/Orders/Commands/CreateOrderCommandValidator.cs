@@ -15,11 +15,6 @@ internal sealed class CreateOrderCommandValidator
         RuleFor(x => x.TotalAmount)
             .GreaterThan(0);
 
-        RuleFor(x => x)
-            .Must(x => x.TotalAmount > 100 || x.Name != "Premium") // magic string
-            .WithMessage("Premium orders must be greater than 100"); //magic string
-            //.WithMessage(L["OrderErrors.Premium"]);
-
         RuleFor(x => x.Name)
             .MustAsync(async (name, cancellationToken) =>
             {

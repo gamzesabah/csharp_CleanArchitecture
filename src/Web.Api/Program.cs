@@ -6,23 +6,36 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using Web.Api;
 using Web.Api.Extensions;
+using Web.Api.Middleware;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder =
+    WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configuration(context.Configuration));
+builder.Host.UseSerilog(
+    (context, loggerConfig) =>
+        loggerConfig.ReadFrom.Configuration(
+            context.Configuration));
 
 builder.Services.AddSwaggerGenWithAuth();
 
 builder.Services
     .AddApplication()
     .AddPresentation()
-    .AddInfrastructure(builder.Configuration);
+    .AddInfrastructure(
+        builder.Configuration);
 
-builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
+builder.Services
+    .AddHealthChecks()
+    .AddNpgSql(
+        builder.Configuration
+            .GetConnectionString(
+                "Database")!);
 
-WebApplication app = builder.Build();
+builder.Services.AddEndpoints(
+    Assembly.GetExecutingAssembly());
 
-app.MapEndpoints();
+WebApplication app =
+    builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
@@ -31,12 +44,25 @@ if (app.Environment.IsDevelopment())
     await app.ApplyMigrationsAndSeedDataAsync();
 }
 
-app.MapHealthChecks("health", new HealthCheckOptions
-{
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-});
+app.MapHealthChecks(
+    "/health",
+    new HealthCheckOptions
+    {
+        Predicate = _ => false
+    });
+
+app.MapHealthChecks(
+    "/health/ready",
+    new HealthCheckOptions
+    {
+        Predicate = _ => true,
+        ResponseWriter =
+            UIResponseWriter.WriteHealthCheckUIResponse
+    });
 
 app.UseRequestContextLogging();
+
+app.UseMiddleware<CorrelationIdMiddleware>();
 
 app.UseSerilogRequestLogging();
 
@@ -44,10 +70,14 @@ app.UseExceptionHandler();
 
 app.UseAuthentication();
 
+app.UseMiddleware<IdempotencyMiddleware>();
+
 app.UseAuthorization();
 
 // REMARK: If you want to use Controllers, you'll need this.
 app.MapControllers();
+
+app.MapEndpoints();
 
 await app.RunAsync();
 
